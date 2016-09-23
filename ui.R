@@ -143,7 +143,12 @@ shinyUI(navbarPage(
                                             plotlyOutput("bill_change_boxplot", height=100),
                                             plotlyOutput("bill_change_histogram", height=250) )
                                      
-                                     )
+                                     ),
+                                   
+                                   tags$style(type="text/css",
+                                              ".shiny-output-error { visibility: hidden; }",
+                                              ".shiny-output-error:before { visibility: hidden; }"
+                                   )
                                    
                           ),
                           
