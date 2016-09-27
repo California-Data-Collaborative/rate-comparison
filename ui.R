@@ -1,5 +1,11 @@
 
 
+variables <- c( "R1","R2","R1C","WO1","I")
+variables1 <- c("A1","A2","A1B","CM5","CM5B")
+variables2 <- c("CM1","CM2","CM4")
+variables3 <- c("I1","I9")
+variables4 <- c("RC1","RC4","RC9")
+
 shinyUI(navbarPage(
   #color #2c3e50
   HTML(paste('<img src="CaDC_logo_bluegrey.png" ',
@@ -17,22 +23,80 @@ shinyUI(navbarPage(
                  column(5, 
                         radioButtons("rateType", label = "Rate Type",
                                      choices = list("Flat" = "Flat", "Tiered" = "Tiered", "Budget" = "Budget"), 
-                                     selected = "Flat")
+                                     selected = "Flat"),
+                        radioButtons("cusType", label = "Customer Type",
+                                     choices = list("SFR"="SFR","MFR" = "MFR","Com" = "Com",
+                                                    "Irrg" = "Irrg",
+                                                    "RW" = "RW"))
+                        
+                        
+                        
+                        
                  ),
                  column(7, 
                         numericInput("fixedCharge", label = "Fixed Charge ($)", value = default_fixed_charge),
                         radioButtons("displayType", label = "Display", selected = "Revenue", inline=TRUE,
-                                     choices = list("Revenue" = "Revenue", "Usage" = "Usage"))
+                                     choices = list("Revenue" = "Revenue", "Usage" = "Usage")),
+                        sliderInput("timeSlider", label = "Time Range", min = min_date, 
+                                    max = max_date, value = c(min_date, max_date), timeFormat="%Y-%m")
+                        
                  )
                ),#end row
                
-               fluidRow(
-                 column(1),
-                 column(10,
-                        sliderInput("timeSlider", label = "Time Range", min = min_date, 
-                                    max = max_date, value = c(min_date, max_date), timeFormat="%Y-%m")
-                 ),
-                 column(1)
+               
+               conditionalPanel(
+                 condition = "input.cusType == 'SFR'",
+                 fluidRow(
+                   column(6,
+                          checkboxGroupInput("classType", label = "Customer Class",
+                                             choices = variables, selected = "R1")
+                          
+                   )
+                 )#end row
+               ),
+               
+               
+               conditionalPanel(
+                 condition = "input.cusType == 'MFR'",
+                 fluidRow(
+                   column(6,
+                          checkboxGroupInput("classType1", label = "Customer Class",
+                                             choices = variables1, selected ="A1" )
+                          
+                   )
+                 )#end row
+               ),
+               conditionalPanel(
+                 condition = "input.cusType == 'Com'",
+                 fluidRow(
+                   column(6,
+                          checkboxGroupInput("classType2", label = "Customer Class2",
+                                             choices = variables2, selected ="CM1" )
+                          
+                   )
+                 )#end row
+               ),
+               
+               conditionalPanel(
+                 condition = "input.cusType == 'Irrg'",
+                 fluidRow(
+                   column(6,
+                          checkboxGroupInput("classType3", label = "Customer Class3",
+                                             choices = variables3, selected ="I1")
+                          
+                   )
+                 )#end row
+               ),
+               
+               conditionalPanel(
+                 condition = "input.cusType == 'RW'",
+                 fluidRow(
+                   column(6,
+                          checkboxGroupInput("classType4", label = "Customer Class4",
+                                             choices = variables4, selected = "RC1" )
+                          
+                   )
+                 )#end row
                ),
                
                # FLATE RATES
@@ -111,14 +175,14 @@ shinyUI(navbarPage(
                  
                )#end conditionalPanel
                
-#                conditionalPanel(
-#                  condition = "input.rateType == 'Tiered' || input.rateType == 'Budget'",
-#                  fluidRow(
-#                    column(12,
-#                           actionButton("updateTiers", "Update Tiers")
-#                    )
-#                  )#end row
-#                )
+               #                conditionalPanel(
+               #                  condition = "input.rateType == 'Tiered' || input.rateType == 'Budget'",
+               #                  fluidRow(
+               #                    column(12,
+               #                           actionButton("updateTiers", "Update Tiers")
+               #                    )
+               #                  )#end row
+               #                )
                
              )#end wellPanel
       ),#end column
@@ -143,12 +207,14 @@ shinyUI(navbarPage(
                                             plotlyOutput("bill_change_boxplot", height=100),
                                             plotlyOutput("bill_change_histogram", height=250) )
                                      
-                                     ),
+                                   ),
                                    
                                    tags$style(type="text/css",
                                               ".shiny-output-error { visibility: hidden; }",
                                               ".shiny-output-error:before { visibility: hidden; }"
                                    )
+                                   
+                                   
                                    
                           ),
                           
