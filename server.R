@@ -63,8 +63,8 @@ shinyServer(function(input, output, clientData, session) {
     combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
       filter(usage_date >= input$timeSlider[1],
              usage_date <= input$timeSlider[2],
-             cust_class == input$classType| cust_class == input$classType1|cust_class == input$classType1| cust_class == input$classType2| cust_class == input$classType3| cust_class == input$classType4)
-    combined
+             cust_class == input$classType[1]|cust_class == input$classType[2]|cust_class == input$classType[3]|cust_class == input$classType[4]|cust_class == input$classType[5]|cust_class == input$classType1[1]|cust_class == input$classType1[2]|cust_class == input$classType1[3]|cust_class == input$classType1[4]|cust_class == input$classType1[5]|cust_class == input$classType2[1]|cust_class == input$classType2[2]|cust_class == input$classType2[3]|cust_class == input$classType3[1]|cust_class == input$classType3[2]|cust_class == input$classType4[1]|cust_class == input$classType4[2]) 
+    combined 
   })
   
   #******************************************************************
@@ -88,13 +88,48 @@ shinyServer(function(input, output, clientData, session) {
     p
   }) 
   
+  output$revenue_time_series1 <- renderPlotly({
+    # print(glimpse(df_plots()[1,]))
+    p <- plot_revenue_over_time( df_plots() )
+    # ggplotly(p)
+    p
+  }) 
+  output$revenue_time_series2 <- renderPlotly({
+    # print(glimpse(df_plots()[1,]))
+    p <- plot_revenue_over_time( df_plots() )
+    # ggplotly(p)
+    p
+  }) 
+  output$revenue_time_series3 <- renderPlotly({
+    # print(glimpse(df_plots()[1,]))
+    p <- plot_revenue_over_time( df_plots() )
+    # ggplotly(p)
+    p
+  }) 
+  output$revenue_time_series4 <- renderPlotly({
+    # print(glimpse(df_plots()[1,]))
+    p <- plot_revenue_over_time( df_plots() )
+    # ggplotly(p)
+    p
+  }) 
   #******************************************************************
   # Bar chart of revenue/usage by tier
   #******************************************************************
   output$barchart_by_tiers <- renderPlotly({
     plot_barchart_by_tiers( df_plots(), input$displayType, input$barType )
   })
-  
+  output$barchart_by_tiers1 <- renderPlotly({
+    plot_barchart_by_tiers( df_plots(), input$displayType, input$barType )
+  })
+  output$barchart_by_tiers2 <- renderPlotly({
+    plot_barchart_by_tiers( df_plots(), input$displayType, input$barType )
+  })
+  output$barchart_by_tiers3 <- renderPlotly({
+    plot_barchart_by_tiers( df_plots(), input$displayType, input$barType )
+  })
+  output$barchart_by_tiers4 <- renderPlotly({
+    plot_barchart_by_tiers( df_plots(), input$displayType, input$barType )
+  })
   #******************************************************************
   # Reactive dataframe of changes to amount paid
   #******************************************************************
@@ -120,16 +155,49 @@ shinyServer(function(input, output, clientData, session) {
   output$bill_change_histogram <- renderPlotly({
     plot_bill_change_histogram( df_change() )
   })
-  
+  output$bill_change_histogram1 <- renderPlotly({
+    plot_bill_change_histogram( df_change() )
+  })
+  output$bill_change_histogram2 <- renderPlotly({
+    plot_bill_change_histogram( df_change() )
+  })
+  output$bill_change_histogram3 <- renderPlotly({
+    plot_bill_change_histogram( df_change() )
+  })
+  output$bill_change_histogram4 <- renderPlotly({
+    plot_bill_change_histogram( df_change() )
+  })
   # Plot boxplot
   output$bill_change_boxplot <- renderPlotly({
     plot_bill_change_boxplot( df_change() )
   })
-  
+  output$bill_change_boxplot1 <- renderPlotly({
+    plot_bill_change_boxplot( df_change() )
+  })
+  output$bill_change_boxplot2 <- renderPlotly({
+    plot_bill_change_boxplot( df_change() )
+  })
+  output$bill_change_boxplot3 <- renderPlotly({
+    plot_bill_change_boxplot( df_change() )
+  })
+  output$bill_change_boxplot4 <- renderPlotly({
+    plot_bill_change_boxplot( df_change() )
+  })
   output$fixed_revenue_barchart <- renderPlotly({
     plot_fixed_revenue(df_plots(), input$barType)
   })
-  
+  output$fixed_revenue_barchart1 <- renderPlotly({
+    plot_fixed_revenue(df_plots(), input$barType)
+  })
+  output$fixed_revenue_barchart2 <- renderPlotly({
+    plot_fixed_revenue(df_plots(), input$barType)
+  })
+  output$fixed_revenue_barchart3 <- renderPlotly({
+    plot_fixed_revenue(df_plots(), input$barType)
+  })
+  output$fixed_revenue_barchart4 <- renderPlotly({
+    plot_fixed_revenue(df_plots(), input$barType)
+  })
 })
 
 
