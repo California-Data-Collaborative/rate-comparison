@@ -260,4 +260,3 @@ shinyUI(navbarPage(
     )#end row
   )#end tabpanel for navar
 ))
-
