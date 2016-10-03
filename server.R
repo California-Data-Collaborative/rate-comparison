@@ -1,11 +1,10 @@
-
 # Load functions
 source("helper_fns.R", local=TRUE)
 source("make_plots.R", local=TRUE)
 
 
 shinyServer(function(input, output, clientData, session) {
-
+  
   # Get the indoor tier cutoffs
   indoor <- reactive({
     get_indoor_tier(df, input$galPerCapitaSlider)
@@ -20,9 +19,9 @@ shinyServer(function(input, output, clientData, session) {
   #******************************************************************
   variable_charge <- reactive({ 
     bill_info <- calculate_variable_bill(data=df, rate_type=input$rateType, 
-                                 tier_starts=tier_info()$starts,
-                                 tier_prices=tier_info()$prices )
-
+                                         tier_starts=tier_info()$starts,
+                                         tier_prices=tier_info()$prices )
+    
     print( paste("Variable Revenue:",sum(bill_info$variable_bill, na.rm=TRUE)) )
     bill_info
   })
@@ -62,11 +61,46 @@ shinyServer(function(input, output, clientData, session) {
   #******************************************************************
   df_plots <- reactive({
     combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
-           filter(rate_code %in% c("RESIDENTIAL_SINGLE"),
-                  usage_date >= input$timeSlider[1],
-                  usage_date <= input$timeSlider[2])
-    combined
+      filter(usage_date >= input$timeSlider[1],
+             usage_date <= input$timeSlider[2],
+             cust_class == input$classType[1]|cust_class == input$classType[2]|cust_class == input$classType[3]|cust_class == input$classType[4]|cust_class == input$classType[5]) 
+    combined 
   })
+  
+  df_plots1 <- reactive({
+    combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
+      filter(usage_date >= input$timeSlider[1],
+             usage_date <= input$timeSlider[2],
+             cust_class == input$classType1[1]|cust_class == input$classType1[2]|cust_class == input$classType1[3]|cust_class == input$classType1[4]|cust_class == input$classType1[5]) 
+    combined 
+  })
+  
+  df_plots2 <- reactive({
+    combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
+      filter(usage_date >= input$timeSlider[1],
+             usage_date <= input$timeSlider[2],
+             cust_class == input$classType2[1]|cust_class == input$classType2[2]|cust_class == input$classType2[3]) 
+    combined 
+  })
+  
+  df_plots3 <- reactive({
+    combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
+      filter(usage_date >= input$timeSlider[1],
+             usage_date <= input$timeSlider[2],
+             cust_class == input$classType3[1]|cust_class == input$classType3[2]) 
+    combined 
+  })
+  
+  df_plots4 <- reactive({
+    combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
+      filter(usage_date >= input$timeSlider[1],
+             usage_date <= input$timeSlider[2],
+             cust_class == input$classType4[1]|cust_class == input$classType4[2]|cust_class == input$classType4[3]) 
+    combined 
+  })
+  
+  
+  
   
   #******************************************************************
   # Calculate bills and tiers for the MNWD residential baseline rate
@@ -78,7 +112,7 @@ shinyServer(function(input, output, clientData, session) {
            "SMWD"=smwd_baseline()
     )
   })
-
+  
   #******************************************************************
   # Line plot of revenue over time
   #******************************************************************
@@ -89,13 +123,48 @@ shinyServer(function(input, output, clientData, session) {
     p
   }) 
   
+  output$revenue_time_series1 <- renderPlotly({
+    # print(glimpse(df_plots()[1,]))
+    p <- plot_revenue_over_time( df_plots1() )
+    # ggplotly(p)
+    p
+  }) 
+  output$revenue_time_series2 <- renderPlotly({
+    # print(glimpse(df_plots()[1,]))
+    p <- plot_revenue_over_time( df_plots2() )
+    # ggplotly(p)
+    p
+  }) 
+  output$revenue_time_series3 <- renderPlotly({
+    # print(glimpse(df_plots()[1,]))
+    p <- plot_revenue_over_time( df_plots3() )
+    # ggplotly(p)
+    p
+  }) 
+  output$revenue_time_series4 <- renderPlotly({
+    # print(glimpse(df_plots()[1,]))
+    p <- plot_revenue_over_time( df_plots4() )
+    # ggplotly(p)
+    p
+  }) 
   #******************************************************************
   # Bar chart of revenue/usage by tier
   #******************************************************************
   output$barchart_by_tiers <- renderPlotly({
     plot_barchart_by_tiers( df_plots(), input$displayType, input$barType )
   })
-  
+  output$barchart_by_tiers1 <- renderPlotly({
+    plot_barchart_by_tiers( df_plots1(), input$displayType, input$barType )
+  })
+  output$barchart_by_tiers2 <- renderPlotly({
+    plot_barchart_by_tiers( df_plots2(), input$displayType, input$barType )
+  })
+  output$barchart_by_tiers3 <- renderPlotly({
+    plot_barchart_by_tiers( df_plots3(), input$displayType, input$barType )
+  })
+  output$barchart_by_tiers4 <- renderPlotly({
+    plot_barchart_by_tiers( df_plots4(), input$displayType, input$barType )
+  })
   #******************************************************************
   # Reactive dataframe of changes to amount paid
   #******************************************************************
@@ -117,20 +186,128 @@ shinyServer(function(input, output, clientData, session) {
     df_change
   })
   
+  df_change1 <- reactive({
+    start.time <- Sys.time()
+    
+    df_change1 <- df_plots1() %>% group_by(cust_id) %>% 
+      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
+                baseline_bill=sum(baseline_bill, na.rm=TRUE)) %>%
+      dplyr::select(total_bill, baseline_bill) %>% 
+      mutate(changes=total_bill-baseline_bill, change_group=1) %>%
+      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+    
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Calcing df_change")
+    print(time.taken)
+    
+    df_change1
+  })
+  
+  df_change2 <- reactive({
+    start.time <- Sys.time()
+    
+    df_change2 <- df_plots2() %>% group_by(cust_id) %>% 
+      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
+                baseline_bill=sum(baseline_bill, na.rm=TRUE)) %>%
+      dplyr::select(total_bill, baseline_bill) %>% 
+      mutate(changes=total_bill-baseline_bill, change_group=1) %>%
+      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+    
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Calcing df_change")
+    print(time.taken)
+    
+    df_change2
+  })
+  
+  df_change3 <- reactive({
+    start.time <- Sys.time()
+    
+    df_change3 <- df_plots3() %>% group_by(cust_id) %>% 
+      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
+                baseline_bill=sum(baseline_bill, na.rm=TRUE)) %>%
+      dplyr::select(total_bill, baseline_bill) %>% 
+      mutate(changes=total_bill-baseline_bill, change_group=1) %>%
+      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+    
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Calcing df_change")
+    print(time.taken)
+    
+    df_change3
+  })
+  
+  
+  df_change4 <- reactive({
+    start.time <- Sys.time()
+    
+    df_change4 <- df_plots4() %>% group_by(cust_id) %>% 
+      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
+                baseline_bill=sum(baseline_bill, na.rm=TRUE)) %>%
+      dplyr::select(total_bill, baseline_bill) %>% 
+      mutate(changes=total_bill-baseline_bill, change_group=1) %>%
+      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+    
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Calcing df_change")
+    print(time.taken)
+    
+    df_change4
+  })
+  
+  
+  
   # Plot histogram
   output$bill_change_histogram <- renderPlotly({
     plot_bill_change_histogram( df_change() )
   })
-  
+  output$bill_change_histogram1 <- renderPlotly({
+    plot_bill_change_histogram( df_change1() )
+  })
+  output$bill_change_histogram2 <- renderPlotly({
+    plot_bill_change_histogram( df_change2() )
+  })
+  output$bill_change_histogram3 <- renderPlotly({
+    plot_bill_change_histogram( df_change3() )
+  })
+  output$bill_change_histogram4 <- renderPlotly({
+    plot_bill_change_histogram( df_change4() )
+  })
   # Plot boxplot
   output$bill_change_boxplot <- renderPlotly({
     plot_bill_change_boxplot( df_change() )
   })
-  
+  output$bill_change_boxplot1 <- renderPlotly({
+    plot_bill_change_boxplot( df_change1() )
+  })
+  output$bill_change_boxplot2 <- renderPlotly({
+    plot_bill_change_boxplot( df_change2() )
+  })
+  output$bill_change_boxplot3 <- renderPlotly({
+    plot_bill_change_boxplot( df_change3() )
+  })
+  output$bill_change_boxplot4 <- renderPlotly({
+    plot_bill_change_boxplot( df_change4() )
+  })
   output$fixed_revenue_barchart <- renderPlotly({
     plot_fixed_revenue(df_plots(), input$barType)
   })
-
+  output$fixed_revenue_barchart1 <- renderPlotly({
+    plot_fixed_revenue(df_plots1(), input$barType)
+  })
+  output$fixed_revenue_barchart2 <- renderPlotly({
+    plot_fixed_revenue(df_plots2(), input$barType)
+  })
+  output$fixed_revenue_barchart3 <- renderPlotly({
+    plot_fixed_revenue(df_plots3(), input$barType)
+  })
+  output$fixed_revenue_barchart4 <- renderPlotly({
+    plot_fixed_revenue(df_plots4(), input$barType)
+  })
 })
 
 
@@ -164,48 +341,48 @@ lvmwd_baseline <- function(){
                             paste("BR", 1:num_tiers, sep=""),
                             "baseline_variable_bill")
   bill_2014 <- bill_2014 %>% mutate(baseline_bill=baseline_variable_bill + 30.21) 
-
+  
   
   #2015 before the September switch to monthly billing
   tmp <- filter(df, usage_year >= 2015, usage_year < 2016, usage_month < 9)
   bill_2015_1 <- calculate_variable_bill(data=tmp, 
-                                       rate_type="Tiered", 
-                                       tier_starts=parse_numerics("0\n16\n67\n200"),
-                                       tier_prices=parse_numerics("2.31\n2.80\n3.81\n5.34") )
+                                         rate_type="Tiered", 
+                                         tier_starts=parse_numerics("0\n16\n67\n200"),
+                                         tier_prices=parse_numerics("2.31\n2.80\n3.81\n5.34") )
   num_tiers <- length(parse_strings("0\n16\n67\n200"))
   colnames(bill_2015_1) <- c( paste("B", 1:num_tiers, sep=""),
-                            paste("BR", 1:num_tiers, sep=""),
-                            "baseline_variable_bill")
+                              paste("BR", 1:num_tiers, sep=""),
+                              "baseline_variable_bill")
   bill_2015_1 <- bill_2015_1 %>% mutate(baseline_bill=baseline_variable_bill + 31.73) 
-
+  
   
   #2015 after the September switch to monthly billing
   tmp <- filter(df, usage_date >= as.Date("2015-09-01"), usage_year < 2016)
   bill_2015_2 <- calculate_variable_bill(data=tmp, 
-                                       rate_type="Tiered", 
-                                       tier_starts=parse_numerics("0\n8\n34\n100"),
-                                       tier_prices=parse_numerics("2.31\n2.80\n3.81\n5.34") )
+                                         rate_type="Tiered", 
+                                         tier_starts=parse_numerics("0\n8\n34\n100"),
+                                         tier_prices=parse_numerics("2.31\n2.80\n3.81\n5.34") )
   num_tiers <- length(parse_strings("0\n16\n67\n200"))
   colnames(bill_2015_2) <- c( paste("B", 1:num_tiers, sep=""),
-                            paste("BR", 1:num_tiers, sep=""),
-                            "baseline_variable_bill")
+                              paste("BR", 1:num_tiers, sep=""),
+                              "baseline_variable_bill")
   bill_2015_2$baseline_bill <- bill_2015_2$baseline_variable_bill + 15.87
-
+  
   
   #2016 budgets
   tmp <- filter(df, usage_year >= 2016)
   tier_starts <- get_budget_tiers(tmp, parse_strings("0\nIndoor\n101%\n151%"), 
                                   get_indoor_tier(tmp, 55), get_outdoor_tier(tmp, 0.8))
   bill_2016 <- calculate_variable_bill(data=tmp, 
-                                   rate_type="Budget", 
-                                   tier_starts=tier_starts,
-                                   tier_prices=parse_numerics("2.36\n3.18\n3.96\n4.98") )
+                                       rate_type="Budget", 
+                                       tier_starts=tier_starts,
+                                       tier_prices=parse_numerics("2.36\n3.18\n3.96\n4.98") )
   num_tiers <- length(parse_strings("2.36\n3.18\n3.96\n4.98"))
   colnames(bill_2016) <- c( paste("B", 1:num_tiers, sep=""),
                             paste("BR", 1:num_tiers, sep=""),
                             "baseline_variable_bill")
   bill_2016$baseline_bill <- bill_2016$baseline_variable_bill + 18.30
-
+  
   
   return( bind_rows(bill_2014, bill_2015_1, bill_2015_2, bill_2016) )
 }
@@ -237,19 +414,19 @@ smwd_baseline <- function(){
   bill_2015_2$baseline_bill <- bill_2015_2$baseline_variable_bill + 8.72
   
   
-#   #2016 budgets
-#   tmp <- filter(df, usage_year >= 2016)
-#   tier_starts <- get_budget_tiers(tmp, parse_strings("0\nIndoor\n101%\n151%"), 
-#                                   get_indoor_tier(tmp, 55), get_outdoor_tier(tmp, 0.8))
-#   bill_2016 <- calculate_variable_bill(data=tmp, 
-#                                        rate_type="Budget", 
-#                                        tier_starts=tier_starts,
-#                                        tier_prices=parse_numerics("2.36\n3.18\n3.96\n4.98") )
-#   num_tiers <- length(parse_strings("2.36\n3.18\n3.96\n4.98"))
-#   colnames(bill_2016) <- c( paste("B", 1:num_tiers, sep=""),
-#                             paste("BR", 1:num_tiers, sep=""),
-#                             "baseline_variable_bill")
-#   bill_2016$baseline_bill <- bill_2016$baseline_variable_bill + 14.89
+  #   #2016 budgets
+  #   tmp <- filter(df, usage_year >= 2016)
+  #   tier_starts <- get_budget_tiers(tmp, parse_strings("0\nIndoor\n101%\n151%"), 
+  #                                   get_indoor_tier(tmp, 55), get_outdoor_tier(tmp, 0.8))
+  #   bill_2016 <- calculate_variable_bill(data=tmp, 
+  #                                        rate_type="Budget", 
+  #                                        tier_starts=tier_starts,
+  #                                        tier_prices=parse_numerics("2.36\n3.18\n3.96\n4.98") )
+  #   num_tiers <- length(parse_strings("2.36\n3.18\n3.96\n4.98"))
+  #   colnames(bill_2016) <- c( paste("B", 1:num_tiers, sep=""),
+  #                             paste("BR", 1:num_tiers, sep=""),
+  #                             "baseline_variable_bill")
+  #   bill_2016$baseline_bill <- bill_2016$baseline_variable_bill + 14.89
   
   
   return( bind_rows(bill_2015_1, bill_2015_2) )
