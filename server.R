@@ -63,9 +63,44 @@ shinyServer(function(input, output, clientData, session) {
     combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
       filter(usage_date >= input$timeSlider[1],
              usage_date <= input$timeSlider[2],
-             cust_class == input$classType[1]|cust_class == input$classType[2]|cust_class == input$classType[3]|cust_class == input$classType[4]|cust_class == input$classType[5]|cust_class == input$classType1[1]|cust_class == input$classType1[2]|cust_class == input$classType1[3]|cust_class == input$classType1[4]|cust_class == input$classType1[5]|cust_class == input$classType2[1]|cust_class == input$classType2[2]|cust_class == input$classType2[3]|cust_class == input$classType3[1]|cust_class == input$classType3[2]|cust_class == input$classType4[1]|cust_class == input$classType4[2]) 
+             cust_class == input$classType[1]|cust_class == input$classType[2]|cust_class == input$classType[3]|cust_class == input$classType[4]|cust_class == input$classType[5]) 
     combined 
   })
+  
+  df_plots1 <- reactive({
+    combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
+      filter(usage_date >= input$timeSlider[1],
+             usage_date <= input$timeSlider[2],
+             cust_class == input$classType1[1]|cust_class == input$classType1[2]|cust_class == input$classType1[3]|cust_class == input$classType1[4]|cust_class == input$classType1[5]) 
+    combined 
+  })
+  
+  df_plots2 <- reactive({
+    combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
+      filter(usage_date >= input$timeSlider[1],
+             usage_date <= input$timeSlider[2],
+             cust_class == input$classType2[1]|cust_class == input$classType2[2]|cust_class == input$classType2[3]) 
+    combined 
+  })
+  
+  df_plots3 <- reactive({
+    combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
+      filter(usage_date >= input$timeSlider[1],
+             usage_date <= input$timeSlider[2],
+             cust_class == input$classType3[1]|cust_class == input$classType3[2]) 
+    combined 
+  })
+  
+  df_plots4 <- reactive({
+    combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
+      filter(usage_date >= input$timeSlider[1],
+             usage_date <= input$timeSlider[2],
+             cust_class == input$classType4[1]|cust_class == input$classType4[2]|cust_class == input$classType4[3]) 
+    combined 
+  })
+  
+  
+  
   
   #******************************************************************
   # Calculate bills and tiers for the MNWD residential baseline rate
@@ -90,25 +125,25 @@ shinyServer(function(input, output, clientData, session) {
   
   output$revenue_time_series1 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots() )
+    p <- plot_revenue_over_time( df_plots1() )
     # ggplotly(p)
     p
   }) 
   output$revenue_time_series2 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots() )
+    p <- plot_revenue_over_time( df_plots2() )
     # ggplotly(p)
     p
   }) 
   output$revenue_time_series3 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots() )
+    p <- plot_revenue_over_time( df_plots3() )
     # ggplotly(p)
     p
   }) 
   output$revenue_time_series4 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots() )
+    p <- plot_revenue_over_time( df_plots4() )
     # ggplotly(p)
     p
   }) 
@@ -119,16 +154,16 @@ shinyServer(function(input, output, clientData, session) {
     plot_barchart_by_tiers( df_plots(), input$displayType, input$barType )
   })
   output$barchart_by_tiers1 <- renderPlotly({
-    plot_barchart_by_tiers( df_plots(), input$displayType, input$barType )
+    plot_barchart_by_tiers( df_plots1(), input$displayType, input$barType )
   })
   output$barchart_by_tiers2 <- renderPlotly({
-    plot_barchart_by_tiers( df_plots(), input$displayType, input$barType )
+    plot_barchart_by_tiers( df_plots2(), input$displayType, input$barType )
   })
   output$barchart_by_tiers3 <- renderPlotly({
-    plot_barchart_by_tiers( df_plots(), input$displayType, input$barType )
+    plot_barchart_by_tiers( df_plots3(), input$displayType, input$barType )
   })
   output$barchart_by_tiers4 <- renderPlotly({
-    plot_barchart_by_tiers( df_plots(), input$displayType, input$barType )
+    plot_barchart_by_tiers( df_plots4(), input$displayType, input$barType )
   })
   #******************************************************************
   # Reactive dataframe of changes to amount paid
@@ -151,52 +186,127 @@ shinyServer(function(input, output, clientData, session) {
     df_change
   })
   
+  df_change1 <- reactive({
+    start.time <- Sys.time()
+    
+    df_change1 <- df_plots1() %>% group_by(cust_id) %>% 
+      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
+                baseline_bill=sum(baseline_bill, na.rm=TRUE)) %>%
+      dplyr::select(total_bill, baseline_bill) %>% 
+      mutate(changes=total_bill-baseline_bill, change_group=1) %>%
+      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+    
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Calcing df_change")
+    print(time.taken)
+    
+    df_change1
+  })
+  
+  df_change2 <- reactive({
+    start.time <- Sys.time()
+    
+    df_change2 <- df_plots2() %>% group_by(cust_id) %>% 
+      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
+                baseline_bill=sum(baseline_bill, na.rm=TRUE)) %>%
+      dplyr::select(total_bill, baseline_bill) %>% 
+      mutate(changes=total_bill-baseline_bill, change_group=1) %>%
+      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+    
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Calcing df_change")
+    print(time.taken)
+    
+    df_change2
+  })
+  
+  df_change3 <- reactive({
+    start.time <- Sys.time()
+    
+    df_change3 <- df_plots3() %>% group_by(cust_id) %>% 
+      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
+                baseline_bill=sum(baseline_bill, na.rm=TRUE)) %>%
+      dplyr::select(total_bill, baseline_bill) %>% 
+      mutate(changes=total_bill-baseline_bill, change_group=1) %>%
+      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+    
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Calcing df_change")
+    print(time.taken)
+    
+    df_change3
+  })
+  
+  
+  df_change4 <- reactive({
+    start.time <- Sys.time()
+    
+    df_change4 <- df_plots4() %>% group_by(cust_id) %>% 
+      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
+                baseline_bill=sum(baseline_bill, na.rm=TRUE)) %>%
+      dplyr::select(total_bill, baseline_bill) %>% 
+      mutate(changes=total_bill-baseline_bill, change_group=1) %>%
+      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+    
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Calcing df_change")
+    print(time.taken)
+    
+    df_change4
+  })
+  
+  
+  
   # Plot histogram
   output$bill_change_histogram <- renderPlotly({
     plot_bill_change_histogram( df_change() )
   })
   output$bill_change_histogram1 <- renderPlotly({
-    plot_bill_change_histogram( df_change() )
+    plot_bill_change_histogram( df_change1() )
   })
   output$bill_change_histogram2 <- renderPlotly({
-    plot_bill_change_histogram( df_change() )
+    plot_bill_change_histogram( df_change2() )
   })
   output$bill_change_histogram3 <- renderPlotly({
-    plot_bill_change_histogram( df_change() )
+    plot_bill_change_histogram( df_change3() )
   })
   output$bill_change_histogram4 <- renderPlotly({
-    plot_bill_change_histogram( df_change() )
+    plot_bill_change_histogram( df_change4() )
   })
   # Plot boxplot
   output$bill_change_boxplot <- renderPlotly({
     plot_bill_change_boxplot( df_change() )
   })
   output$bill_change_boxplot1 <- renderPlotly({
-    plot_bill_change_boxplot( df_change() )
+    plot_bill_change_boxplot( df_change1() )
   })
   output$bill_change_boxplot2 <- renderPlotly({
-    plot_bill_change_boxplot( df_change() )
+    plot_bill_change_boxplot( df_change2() )
   })
   output$bill_change_boxplot3 <- renderPlotly({
-    plot_bill_change_boxplot( df_change() )
+    plot_bill_change_boxplot( df_change3() )
   })
   output$bill_change_boxplot4 <- renderPlotly({
-    plot_bill_change_boxplot( df_change() )
+    plot_bill_change_boxplot( df_change4() )
   })
   output$fixed_revenue_barchart <- renderPlotly({
     plot_fixed_revenue(df_plots(), input$barType)
   })
   output$fixed_revenue_barchart1 <- renderPlotly({
-    plot_fixed_revenue(df_plots(), input$barType)
+    plot_fixed_revenue(df_plots1(), input$barType)
   })
   output$fixed_revenue_barchart2 <- renderPlotly({
-    plot_fixed_revenue(df_plots(), input$barType)
+    plot_fixed_revenue(df_plots2(), input$barType)
   })
   output$fixed_revenue_barchart3 <- renderPlotly({
-    plot_fixed_revenue(df_plots(), input$barType)
+    plot_fixed_revenue(df_plots3(), input$barType)
   })
   output$fixed_revenue_barchart4 <- renderPlotly({
-    plot_fixed_revenue(df_plots(), input$barType)
+    plot_fixed_revenue(df_plots4(), input$barType)
   })
 })
 
