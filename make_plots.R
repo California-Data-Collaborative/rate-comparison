@@ -11,7 +11,7 @@ library(stringi)
 #******************************************************************
 plot_revenue_over_time <- function(data){
   start.time <- Sys.time()
-  
+
   monthly_revenue <- data %>%  group_by(usage_date) %>% 
                       summarise(revenue=sum(total_bill, na.rm=TRUE),
                                 baseline_revenue=sum(baseline_bill, na.rm=TRUE)) %>% 
@@ -117,21 +117,22 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
                 value = value*0.00229569/1000)
     lab_str <- "Usage During Time Period (Thousand AF)"
   }
-  
+
   if(bar_type == "Absolute"){
-    ggplot(d, aes(type, value, fill=Tier)) + geom_bar(stat="identity") +
+    p <- ggplot(d, aes(type, value, fill=Tier)) + geom_bar(stat="identity") +
       xlab("") + ylab(lab_str)
   }
   else{
     
   }
+  p
 }
 
 #******************************************************************
 # Barchart showing fixed revenue
 #******************************************************************
 plot_fixed_revenue <- function(data, bar_type){
-
+  
   # Select revenue in each tier
   d <- colSums(data %>% select(baseline_variable_bill, baseline_bill, variable_bill, total_bill), 
                na.rm=TRUE)
@@ -145,15 +146,22 @@ plot_fixed_revenue <- function(data, bar_type){
   lab_str <- "Percent Fixed Revenue"
 
   
-  if(bar_type == "Absolute"){
-    ggplot(d, aes(variable, value, fill=variable)) + geom_bar(stat="identity") +
-      xlab("") + ylab(lab_str) + #coord_flip() + 
-      scale_fill_manual( values=c("Hypothetical"="steelblue", "Baseline"="black") ) +
-      guides(fill=FALSE)
+  if(sum(d$value) < 0.1){
+    p <- ggplot() + 
+      geom_hline(yintercept = 0, color="#CC0000") +
+      xlab("") + ylab(lab_str)
+  }else{
+    if(bar_type == "Absolute"){
+      p <- ggplot(d, aes(variable, value, fill=variable)) + geom_bar(stat="identity") +
+        xlab("") + ylab(lab_str) + #coord_flip() + 
+        scale_fill_manual( values=c("Hypothetical"="steelblue", "Baseline"="black") ) +
+        guides(fill=FALSE)
+    }
+    else{
+      
+    }
   }
-  else{
-    
-  }
+  p
 }
 
 #******************************************************************
