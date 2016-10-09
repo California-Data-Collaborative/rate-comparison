@@ -9,7 +9,17 @@ This section will link to a live demo version of the tool running on public data
 
 ## Getting Started
 
-This section will describe how to get started using an example with public sample data.
+To get the tool running using [public sample data](https://data.smgov.net/Public-Services/Water-Usage/4nnq-5vzx) from the City of Santa Monica, 
+
+1. Ensure that `R` is [installed](https://www.r-project.org/).
+
+2. Install any `R` package dependencies.
+
+3. Clone this repository.
+
+4. Run the Shiny app, either [from the command line](http://shiny.rstudio.com/articles/running.html) or using the "Run App" button from within RStudio.
+
+simply clone the repository and run the R Shiny app
 
 ## How to contribute
 
