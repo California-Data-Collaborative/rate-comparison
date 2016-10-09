@@ -75,7 +75,8 @@ shinyServer(function(input, output, clientData, session) {
     switch(utility_code,
            "MNWD"=mnwd_baseline(),
            "LVMWD"=lvmwd_baseline(),
-           "SMWD"=smwd_baseline()
+           "SMWD"=smwd_baseline(),
+           "SMC"=smc_baseline()
     )
   })
 
@@ -253,4 +254,34 @@ smwd_baseline <- function(){
   
   
   return( bind_rows(bill_2015_1, bill_2015_2) )
+}
+
+
+smc_baseline <- function(){
+  #before 2016
+  tmp <- filter(df, usage_date < as.Date("2016-01-01"))
+  bill_2015 <- calculate_variable_bill(data=tmp, 
+                                         rate_type="Tiered", 
+                                         tier_starts=parse_numerics("0\n15\n41\n149"),
+                                         tier_prices=parse_numerics("2.73\n4.09\n6.13\n9.59") )
+  num_tiers <- length(parse_strings("0\n15\n41\n149"))
+  colnames(bill_2015) <- c( paste("B", 1:num_tiers, sep=""),
+                              paste("BR", 1:num_tiers, sep=""),
+                              "baseline_variable_bill")
+  bill_2015 <- bill_2015 %>% mutate(baseline_bill=baseline_variable_bill + 0) 
+  
+  
+  #after 2016
+  tmp <- filter(df, usage_date >= as.Date("2016-01-01"))
+  bill_2016 <- calculate_variable_bill(data=tmp, 
+                                         rate_type="Tiered", 
+                                         tier_starts=parse_numerics("0\n15\n41\n149"),
+                                         tier_prices=parse_numerics("2.87\n4.29\n6.44\n10.07") )
+  num_tiers <- length(parse_strings("0\n15\n41\n149"))
+  colnames(bill_2016) <- c( paste("B", 1:num_tiers, sep=""),
+                              paste("BR", 1:num_tiers, sep=""),
+                              "baseline_variable_bill")
+  bill_2016$baseline_bill <- bill_2016$baseline_variable_bill + 0
+  
+  return( bind_rows(bill_2015, bill_2016) )
 }
