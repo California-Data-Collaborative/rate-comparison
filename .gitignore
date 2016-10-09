@@ -3,6 +3,7 @@
 
 # Data
 data/*
+!/data/smc_test.csv
 
 #!! ERROR: rsh is undefined. Use list command to see defined gitignore types !!#
 
