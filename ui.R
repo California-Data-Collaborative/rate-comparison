@@ -1,10 +1,5 @@
 
-variables <- c( "R1","R2","R1C","WO1","I")
-variables1 <- c("A1","A2","A1B","CM5","CM5B")
-variables2 <- c("CM1","CM2","CM4")
-variables3 <- c("I1","I9")
-variables4 <- c("RC1","RC4","RC9")
-
+# automatic reading rate codes, renaming the tabs, consistent naming convention
 shinyUI(navbarPage(
   #color #2c3e50
   HTML(paste('<img src="CaDC_logo_bluegrey.png" ',
@@ -37,12 +32,13 @@ shinyUI(navbarPage(
                ),#end row
                
                fluidRow(
-                 column(7,
+                 column(1),
+                 column(10,
                         sliderInput("timeSlider", label = "Time Range", min = min_date, 
                                     max = max_date, value = c(min_date, max_date), timeFormat="%Y-%m")
-                 )
+                 ),
+                 column(1)
                ),
-               
                
                
                # FLATE RATES
@@ -137,7 +133,7 @@ shinyUI(navbarPage(
       column( 8, #"main panel",
               tabsetPanel(type="tabs",
                           tabPanel("Residential_Single",
-                                   checkboxGroupInput("classType", label = "Customer Class",inline=TRUE,
+                                   checkboxGroupInput("RateCode", label = "Rate Code",inline=TRUE,
                                                       choices = variables, selected = "R1"),
                                    
                                    fluidRow(
@@ -163,7 +159,7 @@ shinyUI(navbarPage(
                                               ".shiny-output-error:before { visibility: hidden; }" )
                           ),
                           tabPanel("Residential_Multi",
-                                   checkboxGroupInput("classType1", label = "Customer Class",inline=TRUE,
+                                   checkboxGroupInput("RateCode1", label = "Rate Code",inline=TRUE,
                                                       choices = variables1, selected = "A1"),
                                    fluidRow( column(12, plotlyOutput("revenue_time_series1", height=250) )),
                                    fluidRow(
@@ -184,8 +180,8 @@ shinyUI(navbarPage(
                           ),
                           
                           tabPanel("Commercial",
-                                   checkboxGroupInput("classType2", label = "Customer Class",inline=TRUE,
-                                                      choices = variables2, selected = "CM1"),
+                                   checkboxGroupInput("RateCode2", label = "Rate Code",inline=TRUE,
+                                                      choices = variables2,selected = "CM4" ),
                                    fluidRow( column(12, plotlyOutput("revenue_time_series2", height=250) )),
                                    fluidRow(
                                      column(4,
@@ -205,8 +201,8 @@ shinyUI(navbarPage(
                           ) ,
                           
                           tabPanel("Irrigation",
-                                   checkboxGroupInput("classType3", label = "Customer Class",inline=TRUE,
-                                                      choices = variables3, selected = "I1"),
+                                   checkboxGroupInput("RateCode3", label = "Rate Code",inline=TRUE,
+                                                      choices = variables3,selected = "RC1" ),
                                    fluidRow( column(12, plotlyOutput("revenue_time_series3", height=250) )),
                                    fluidRow(
                                      column(4,
@@ -224,9 +220,9 @@ shinyUI(navbarPage(
                                      
                                    )
                           ), 
-                          tabPanel("Recycled",
-                                   checkboxGroupInput("classType4", label = "Customer Class",inline=TRUE,
-                                                      choices = variables4, selected = "RC1"),
+                          tabPanel("Institutional",
+                                   checkboxGroupInput("RateCode4", label = "Rate Code",inline=TRUE,
+                                                      choices = variables4,selected = "RC2" ),
                                    fluidRow( column(12, plotlyOutput("revenue_time_series4", height=250) )),
                                    fluidRow(
                                      column(4,
@@ -246,14 +242,25 @@ shinyUI(navbarPage(
                           ),
                           
                           tabPanel("Other",
+                                   checkboxGroupInput("RateCode5", label = "Rate Code",inline=TRUE,
+                                                      choices = variables5,selected = "FP" ),
+                                   fluidRow( column(12, plotlyOutput("revenue_time_series5", height=250) )),
                                    fluidRow(
-                                   ),
-                                   fluidRow(
-                                     br()
+                                     column(4,
+                                            plotlyOutput("barchart_by_tiers5", height=350),
+                                            radioButtons("barType", label = "",  selected = "Absolute", inline=TRUE,
+                                                         choices = list("Absolute" = "Absolute", "Percent" = "Percent"))
+                                     ),
+                                     
+                                     column(3,
+                                            plotlyOutput("fixed_revenue_barchart5", height=350)
+                                     ),
+                                     column(5, 
+                                            plotlyOutput("bill_change_boxplot5", height=100),
+                                            plotlyOutput("bill_change_histogram5", height=250) )
+                                     
                                    )
                           )
-                          
-                          
                           
               )#end tabsetpanel
       ) #end column
