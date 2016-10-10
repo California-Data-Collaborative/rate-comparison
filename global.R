@@ -107,33 +107,30 @@ df1$rate_code <- as.character(df1$rate_code)
 
 r2 <- aggregate(cust_class~rate_code, df1, FUN=unique)
 
-r3.1 <-  df1 %>%
+r2.1 <-  r2 %>%
   filter(cust_class == "RESIDENTIAL_SINGLE")
 
-r3.2 <-  df1 %>%
+r2.2 <-  r2 %>%
   filter(cust_class == "RESIDENTIAL_MULTI")
 
-r3.3 <-  df1 %>%
+r2.3 <-  r2 %>%
   filter(cust_class == "COMMERCIAL")
 
-r3.4 <-  df1 %>%
+r2.4 <-  r2 %>%
   filter(cust_class == "IRRIGATION")
 
-r3.5 <-  df1 %>%
+r2.5 <-  r2 %>%
   filter(cust_class == "INSTITUTIONAL")
 
-r3.6 <-  df1 %>%
+r2.6 <-  r2 %>%
   filter(cust_class == "OTHER")
 
 
-variables <- unique(r3.1$rate_code)
-variables1 <- unique(r3.2$rate_code)
-variables2 <- unique(r3.3$rate_code)
-variables3 <- unique(r3.4$rate_code)
-variables4 <-  unique(r3.5$rate_code)
-variables5 <-  unique(r3.6$rate_code)
-
-
-
+variables <- unique(r2.1$rate_code)
+variables1 <- unique(r2.2$rate_code)
+variables2 <- unique(r2.3$rate_code)
+variables3 <- unique(r2.4$rate_code)
+variables4 <-  unique(r2.5$rate_code)
+variables5 <-  unique(r2.6$rate_code)
 
 
