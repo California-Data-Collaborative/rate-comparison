@@ -63,7 +63,7 @@ shinyServer(function(input, output, clientData, session) {
     combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
       filter(usage_date >= input$timeSlider[1],
              usage_date <= input$timeSlider[2],
-             cust_class == input$classType[1]|cust_class == input$classType[2]|cust_class == input$classType[3]|cust_class == input$classType[4]|cust_class == input$classType[5]) 
+             rate_code %in% input$RateCode) 
     combined 
   })
   
@@ -71,7 +71,7 @@ shinyServer(function(input, output, clientData, session) {
     combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
       filter(usage_date >= input$timeSlider[1],
              usage_date <= input$timeSlider[2],
-             cust_class == input$classType1[1]|cust_class == input$classType1[2]|cust_class == input$classType1[3]|cust_class == input$classType1[4]|cust_class == input$classType1[5]) 
+             rate_code %in% input$RateCode1 ) 
     combined 
   })
   
@@ -79,7 +79,7 @@ shinyServer(function(input, output, clientData, session) {
     combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
       filter(usage_date >= input$timeSlider[1],
              usage_date <= input$timeSlider[2],
-             cust_class == input$classType2[1]|cust_class == input$classType2[2]|cust_class == input$classType2[3]) 
+             rate_code %in% input$RateCode2  ) 
     combined 
   })
   
@@ -87,7 +87,7 @@ shinyServer(function(input, output, clientData, session) {
     combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
       filter(usage_date >= input$timeSlider[1],
              usage_date <= input$timeSlider[2],
-             cust_class == input$classType3[1]|cust_class == input$classType3[2]) 
+             rate_code %in% input$RateCode3) 
     combined 
   })
   
@@ -95,10 +95,17 @@ shinyServer(function(input, output, clientData, session) {
     combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
       filter(usage_date >= input$timeSlider[1],
              usage_date <= input$timeSlider[2],
-             cust_class == input$classType4[1]|cust_class == input$classType4[2]|cust_class == input$classType4[3]) 
+             rate_code %in% input$RateCode4) 
     combined 
   })
   
+  df_plots5 <- reactive({
+    combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
+      filter(usage_date >= input$timeSlider[1],
+             usage_date <= input$timeSlider[2],
+             rate_code %in% input$RateCode5) 
+    combined 
+  })
   
   
   
@@ -147,6 +154,14 @@ shinyServer(function(input, output, clientData, session) {
     # ggplotly(p)
     p
   }) 
+  output$revenue_time_series5 <- renderPlotly({
+    # print(glimpse(df_plots()[1,]))
+    p <- plot_revenue_over_time( df_plots5() )
+    # ggplotly(p)
+    p
+  })
+  
+  
   #******************************************************************
   # Bar chart of revenue/usage by tier
   #******************************************************************
@@ -165,6 +180,10 @@ shinyServer(function(input, output, clientData, session) {
   output$barchart_by_tiers4 <- renderPlotly({
     plot_barchart_by_tiers( df_plots4(), input$displayType, input$barType )
   })
+  output$barchart_by_tiers5 <- renderPlotly({
+    plot_barchart_by_tiers( df_plots5(), input$displayType, input$barType )
+  })
+  
   #******************************************************************
   # Reactive dataframe of changes to amount paid
   #******************************************************************
@@ -198,7 +217,7 @@ shinyServer(function(input, output, clientData, session) {
     
     end.time <- Sys.time()
     time.taken <- end.time - start.time
-    print("Calcing df_change")
+    print("Calcing df_change1")
     print(time.taken)
     
     df_change1
@@ -259,7 +278,23 @@ shinyServer(function(input, output, clientData, session) {
     df_change4
   })
   
-  
+  df_change5 <- reactive({
+    start.time <- Sys.time()
+    
+    df_change5 <- df_plots5() %>% group_by(cust_id) %>% 
+      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
+                baseline_bill=sum(baseline_bill, na.rm=TRUE)) %>%
+      dplyr::select(total_bill, baseline_bill) %>% 
+      mutate(changes=total_bill-baseline_bill, change_group=1) %>%
+      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+    
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Calcing df_change")
+    print(time.taken)
+    
+    df_change5
+  })
   
   # Plot histogram
   output$bill_change_histogram <- renderPlotly({
@@ -277,6 +312,10 @@ shinyServer(function(input, output, clientData, session) {
   output$bill_change_histogram4 <- renderPlotly({
     plot_bill_change_histogram( df_change4() )
   })
+  output$bill_change_histogram5 <- renderPlotly({
+    plot_bill_change_histogram( df_change5() )
+  })
+  
   # Plot boxplot
   output$bill_change_boxplot <- renderPlotly({
     plot_bill_change_boxplot( df_change() )
@@ -293,6 +332,10 @@ shinyServer(function(input, output, clientData, session) {
   output$bill_change_boxplot4 <- renderPlotly({
     plot_bill_change_boxplot( df_change4() )
   })
+  output$bill_change_boxplot5 <- renderPlotly({
+    plot_bill_change_boxplot( df_change5() )
+  })
+  
   output$fixed_revenue_barchart <- renderPlotly({
     plot_fixed_revenue(df_plots(), input$barType)
   })
@@ -308,6 +351,10 @@ shinyServer(function(input, output, clientData, session) {
   output$fixed_revenue_barchart4 <- renderPlotly({
     plot_fixed_revenue(df_plots4(), input$barType)
   })
+  output$fixed_revenue_barchart5 <- renderPlotly({
+    plot_fixed_revenue(df_plots5(), input$barType)
+  })
+  
 })
 
 
