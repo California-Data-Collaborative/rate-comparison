@@ -26,12 +26,15 @@ classGraphOutput <- function(id, rate_codes){
                 column(8, 
                        radioButtons(ns("rateType"), label = "Rate Type", inline=TRUE,
                                     choices = list("Flat" = "Flat", "Tiered" = "Tiered", "Budget" = "Budget"), 
-                                    selected = "Flat")
+                                    selected = "Budget")
                 ),
                 column(4, 
                        radioButtons(ns("displayType"), label = "Display", selected = "Revenue", inline=FALSE,
                                     choices = list("Revenue" = "Revenue", "Usage" = "Usage"))
+                       
+                      
                 )
+                
               ),#end row
               
               fluidRow(
@@ -39,6 +42,8 @@ classGraphOutput <- function(id, rate_codes){
                 column(10,
                        sliderInput(ns("timeSlider"), label = "Time Range", min = min_date, 
                                    max = max_date, value = c(min_date, max_date), timeFormat="%Y-%m")
+                      
+                      
                 ),
                 column(1)
               ),
@@ -253,6 +258,8 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   output$barchart_by_tiers <- renderPlotly({
     plot_barchart_by_tiers( df_plots(), input$displayType, input$barType )
   })
+  
+ 
   
   #******************************************************************
   # Reactive dataframe of changes to amount paid

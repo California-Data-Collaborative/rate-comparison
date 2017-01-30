@@ -12,9 +12,10 @@ shinyUI(navbarPage(
     "Rate Comparison",
     fluidRow(
       tags$head(tags$link(rel="icon", type="image/x-icon", href="favicon.ico")),
-
+     
 
       column( 12, #"main panel",
+              downloadButton('downloadData', 'Download Data'),
               uiOutput('classTabs')
       ) #end column
     )#end row
