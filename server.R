@@ -20,9 +20,8 @@ shinyServer(function(input, output, clientData, session) {
     req(input$Irrigation)
     req(input$ResidentialMulti)
     req(input$Recycled)
-    constant_Growth <- input$ResidentialSingle == 0 & input$ResidentialMulti == 0 & input$Irrigation == 0 & input$Commercial == 0 & input$Other == 0 & input$Institutional == 0 & input$Recycled == 0
     
-    
+    constant_Growth <- input$ResidentialSingle == 0 & input$ResidentialMulti == 0 & input$Irrigation == 0 & input$Commercial == 0 & input$Other == 0 & input$Institutional == 0 & input$Recycled == 0  
     Growth <- input$ResidentialSingle + input$ResidentialMulti + input$Irrigation + input$Commercial + input$Other + input$Institutional + input$Recycled
     
   
@@ -474,15 +473,6 @@ shinyServer(function(input, output, clientData, session) {
   #******************************************************************
   # Calculate total bill
   #******************************************************************
-  DF <- reactive({
-    if(input$Planning){
-      planneddf()
-    }
-    else{
-      df
-    }
-  })
-  
   total_bill_info <- reactive({
     
     bill_info <- RateParser::calculate_bill(DF(), hypothetical_rate_list())
@@ -505,14 +495,10 @@ shinyServer(function(input, output, clientData, session) {
   })
   
   # Return the proper dataframe given planning status
-
   DF <- reactive({
     req(input$Months)
     if(input$Planning & input$Months != 0){
       planneddf()
-    }
-    else if(input$Planning & input$Months == 0){
-      df
     }
     else{
       df
