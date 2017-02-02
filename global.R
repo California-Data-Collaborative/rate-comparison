@@ -12,8 +12,6 @@ source("R/make_plots.R", local=TRUE)
 
 source("R/class_graphs.R")
 source("R/rate_inputs.R")
-
-
 #******************************************************************
 # Read in the data and map the columns to application columns
 #******************************************************************
@@ -24,8 +22,7 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
   
   print("Reading data...")
   start.time <- Sys.time()
-  
-  data <- tbl_df(read.csv(filename)) %>% 
+  data <- tbl_df(read.csv(filename,stringsAsFactors = FALSE)) %>% 
     dplyr::rename_(.dots=setNames(list(cust_col), "cust_id")) %>%
     dplyr::rename_(.dots=setNames(list(usage_col), "usage_ccf")) %>%
     dplyr::rename_(.dots=setNames(list(month_col), "usage_month")) %>%
@@ -58,7 +55,8 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
 }
 
 generated_inputs <- list()
-baseline_rate_list <- RateParser::read_owrs_file("mnwd.owrs.txt")
+baseline_rate_list <- RateParser::read_owrs_file("mnwd.owrs")
+
 
 is_budget <- switch(utility_code,
                     "IRWD"=,
@@ -76,7 +74,7 @@ less_than_date <- switch(utility_code,
 
 test_file <- switch(utility_code,
                     "IRWD"="data/irwd_test.csv",
-                    "MNWD"="data/mnwd_sample.csv",
+                    "MNWD"="data/mnwd_test1.csv",
                     "LVMWD"="data/lvmwd_test.csv",
                     "SMWD"="data/smwd_test.csv",
                     "SMC"="data/smc_test.csv")
@@ -87,12 +85,12 @@ test_file <- switch(utility_code,
 if(is_budget){
   df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
                   year_col="usage_year", et_col="usage_et_amount", hhsize_col="cust_loc_hhsize", 
-                  irr_area_col="cust_loc_irr_area_sf", cust_class_col= "cust_loc_class", 
+                  irr_area_col="cust_loc_irr_area_sf", cust_class_col= "cust_loc_rate_class", 
                   rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
                   meter_size_col="cust_loc_meter_size", less_than_date=less_than_date)
 } else{
   df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
-                  year_col="usage_year", cust_class_col= "cust_loc_class", 
+                  year_col="usage_year", cust_class_col= "cust_loc_rate_class", 
                   rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
                   meter_size_col="cust_loc_meter_size", less_than_date=less_than_date)
 }

@@ -19,11 +19,10 @@ shinyServer(function(input, output, clientData, session) {
     req(input$Commercial)
     req(input$Irrigation)
     req(input$ResidentialMulti)
+    req(input$Recycled)
     
-    constant_Growth <- input$ResidentialSingle == 0 & input$ResidentialMulti == 0 & input$Irrigation == 0 & input$Commercial == 0 & input$Other == 0 & input$Institutional == 0
-    
-    
-    Growth <- input$ResidentialSingle + input$ResidentialMulti + input$Irrigation + input$Commercial + input$Other + input$Institutional
+    constant_Growth <- input$ResidentialSingle == 0 & input$ResidentialMulti == 0 & input$Irrigation == 0 & input$Commercial == 0 & input$Other == 0 & input$Institutional == 0 & input$Recycled == 0  
+    Growth <- input$ResidentialSingle + input$ResidentialMulti + input$Irrigation + input$Commercial + input$Other + input$Institutional + input$Recycled
     
   
     
@@ -60,7 +59,7 @@ shinyServer(function(input, output, clientData, session) {
       class_proportions <- as.data.frame(prop.table(table(df$cust_class)), stringsAsFactors = FALSE)
       
       class_proportions$Freq <- c(input$Commercial,input$Institutional, input$Irrigation,input$Other,input$ResidentialMulti,
-                                  input$ResidentialSingle)
+                                  input$ResidentialSingle,input$Recycled)
       
       negative_classes_df <- class_proportions[class_proportions$Freq < 0, ]
       
@@ -161,6 +160,7 @@ shinyServer(function(input, output, clientData, session) {
           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "COMMERCIAL", "usage_ccf"] <- input$EstUsagePerAccount_commercial
           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "INSTITUTIONAL", "usage_ccf"] <- input$EstUsagePerAccount_institutional
           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "OTHER", "usage_ccf"] <- input$EstUsagePerAccount_other
+          new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RECYCLED", "usage_ccf"] <- input$EstUsagePerAccount_recycled
           #new_recent_month_data[(nrow(new_recent_month_data)-(total_positive_classes*i)+1):nrow(new_recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
           
           
@@ -235,7 +235,7 @@ shinyServer(function(input, output, clientData, session) {
            new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "COMMERCIAL", "usage_ccf"] <- input$EstUsagePerAccount_commercial
            new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "INSTITUTIONAL", "usage_ccf"] <- input$EstUsagePerAccount_institutional
            new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "OTHER", "usage_ccf"] <- input$EstUsagePerAccount_other
-           
+           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RECYCLED", "usage_ccf"] <- input$EstUsagePerAccount_recycled
            if("cust_loc_meter_size" %in% colnames(df)){
            #fill in meter size for new accounts
            new_recent_month_data[(nrow(recent_month_data)+(total_negative_classes*i)+1):(nrow(recent_month_data)+(extra_rows*i)),"meter_size"] <- getmode(df$meter_size)
@@ -500,14 +500,26 @@ shinyServer(function(input, output, clientData, session) {
     if(input$Planning & input$Months != 0){
       planneddf()
     }
-    else if(input$Planning & input$Months == 0){
-      df
-    }
     else{
       df
     }
+})
+ 
+  df_download <- reactive({
+    combined <- dplyr::bind_cols(DF(), total_bill_info(),baseline_bill_info()) 
+    
+    combined
   })
   
+  
+  output$downloadData <- downloadHandler(
+    filename = function() { paste("TierUse_BillReport", '.csv', sep='') },
+    content = function(file) {
+      write.csv(df_download(),file)
+    }
+  )
+  
+ 
   # Generate output panels for each customer class in the data
   output$classTabs <- renderUI({
     myTabs = lapply(1:length(cust_class_list), function(i){
