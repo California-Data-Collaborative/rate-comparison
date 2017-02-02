@@ -15,7 +15,6 @@ shinyUI(navbarPage(
      
 
       column( 12, #"main panel",
-              downloadButton('downloadData', 'Download Data'),
               uiOutput('classTabs')
       ) #end column
     )#end row
@@ -26,7 +25,8 @@ shinyUI(navbarPage(
                                width = NULL)),
        column(3, numericInput("Months", "Number of months to Forecast", 
                               3, min = 1, max = 24, step = 1,
-                              width = NULL)
+                              width = NULL),
+       column(2, downloadButton('downloadData', 'Download Data'))
        )
      ),
      fluidRow(
